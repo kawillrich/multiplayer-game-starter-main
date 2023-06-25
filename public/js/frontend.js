@@ -3,10 +3,11 @@ const c = canvas.getContext('2d')
 
 const socket = io();
 
-const scoreEl = document.querySelector('#scoreEl')
+const scoreEl = document.querySelector('#scoreEl');
+const devicePixelRatio = window.devicePixelRatio || 1;
 
-canvas.width = innerWidth
-canvas.height = innerHeight
+canvas.width = innerWidth * devicePixelRatio
+canvas.height = innerHeight * devicePixelRatio
 
 const x = canvas.width / 2
 const y = canvas.height / 2
@@ -22,8 +23,13 @@ socket.on('updatePlayers', (backEndPlayers) => {
         x: backEndPlayer.x, 
         y: backEndPlayer.y, 
         radius: 10, 
-        color: 'hsl(0, 100%, 50%)'
+        color: backEndPlayer.color
       })
+    } else {
+      //if a player already exists
+      frontEndPlayers[id].x = backEndPlayer.x;
+      frontEndPlayers[id].y = backEndPlayer.y;
+
     }
   }
   for (const id in frontEndPlayers) {
@@ -49,3 +55,105 @@ function animate() {
 
 animate()
 
+const keys = {
+  w: {
+    pressed: false
+  }, 
+  a: {
+    pressed: false
+  }, 
+  s: {
+    pressed: false
+  }, 
+  d: {
+    pressed: false
+  }
+};
+
+const speed = 5;
+
+const playerInputs = [];
+let sequenceNumber = 0;
+
+setInterval(() => {
+  if (keys.w.pressed) {
+    sequenceNumber++;
+    playerInputs.push({sequenceNumber, dx: 0, dy: -speed})
+    frontEndPlayers[socket.id].y -= speed;
+    socket.emit('keydown', 'KeyW')
+  }
+
+  if (keys.a.pressed) {
+    sequenceNumber++;
+    playerInputs.push({sequenceNumber, dx: -speed, dy: 0})
+    frontEndPlayers[socket.id].x -= speed;   
+      socket.emit('keydown', 'KeyA')
+  }
+
+  if (keys.s.pressed) {
+    sequenceNumber++;
+    playerInputs.push({sequenceNumber, dx: 0, dy: +speed})
+    frontEndPlayers[socket.id].y += speed;   
+      socket.emit('keydown', 'KeyS')
+  }
+
+  if (keys.d.pressed) {
+    sequenceNumber++;
+    playerInputs.push({sequenceNumber, dx: +speed, dy: 0})
+    frontEndPlayers[socket.id].x += speed;   
+      socket.emit('keydown', 'KeyD')
+  }
+
+
+
+}, 15)
+
+window.addEventListener('keydown', (event) => {
+
+  if (!frontEndPlayers[socket.id]) return;
+
+  switch(event.code) {
+    case 'KeyW':
+      keys.w.pressed = true;
+    break;
+
+    case 'KeyA':
+      keys.a.pressed = true;
+
+
+      break;
+
+    case 'KeyS':
+      keys.s.pressed = true;
+
+      break;
+
+    case 'KeyD':
+      keys.d.pressed = true;
+
+      break;
+  }
+})
+
+window.addEventListener('keyup', (event) => {
+  if (!frontEndPlayers[socket.id]) return;
+
+  switch(event.code) {
+    case 'KeyW':
+      keys.w.pressed = false;
+    break;
+
+    case 'KeyA':
+      keys.a.pressed = false;
+      break;
+
+    case 'KeyS':
+      keys.s.pressed = false;
+      break;
+
+    case 'KeyD':
+      keys.d.pressed = false;
+    break;
+  }
+
+})
