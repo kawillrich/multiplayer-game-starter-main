@@ -2,5 +2,4 @@
 
 Click here to start:
 
-[(https://kawillrich.github.io/multiplayer-game-starter-main/public)]
-
+www.github.io/kawillrich/multiplayer-game-starter-main/public
